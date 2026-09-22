@@ -6,10 +6,18 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// When building for GitHub Pages this must be set to the repo subpath (e.g. "/idk").
+const ghBasePath = process.env.GH_BASE_PATH ?? "";
+const base = ghBasePath ? `/${ghBasePath.replace(/^\/+|\/+$/g, "")}/` : "/";
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // Static client build -> servable as a plain static site (GitHub Pages).
+    spa: { enabled: true },
+    router: { basepath: ghBasePath || undefined },
   },
+  vite: { base },
 });
