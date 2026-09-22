@@ -1,24 +1,25 @@
 import { useCallback, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
-import memory1 from "@/assets/memories-1.jpg";
-import memory2 from "@/assets/memories-2.jpg";
-import memory3 from "@/assets/memories-3.jpg";
+import { Button } from "@/components/ui/button";
+import callOneAsset from "@/assets/saanvi-call-1.png.asset.json";
+import danceOneAsset from "@/assets/saanvi-dance-1.png.asset.json";
+import danceTwoAsset from "@/assets/saanvi-dance-2.png.asset.json";
+import callTwoAsset from "@/assets/saanvi-call-2.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Happy Birthday, Saanvi" },
+      { title: "Happy 15th Birthday, Saanvi" },
       {
         name: "description",
         content:
-          "A little corner of the internet, made just for Saanvi — memories, wishes, and a candle waiting at the end.",
+          "A birthday letter, six wishes, four memories, and a little bit of billu magic made especially for Saanvi.",
       },
-      { property: "og:title", content: "Happy Birthday, Saanvi" },
+      { property: "og:title", content: "Happy 15th Birthday, Saanvi" },
       {
         property: "og:description",
-        content:
-          "A little corner of the internet, made just for Saanvi — memories, wishes, and a candle waiting at the end.",
+        content: "A tiny birthday world made with love for Saanvi.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -27,228 +28,262 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const LOVES = [
-  {
-    n: "1",
-    bg: "bg-blush/60",
-    title: "Your laugh",
-    text: "The one that starts quiet and then completely takes over the room. I have never once been able to resist it.",
-  },
-  {
-    n: "2",
-    bg: "bg-gold/50",
-    title: "How you listen",
-    text: "You make everyone feel like they are the only person in the world. I don't know how you do it, but you do.",
-  },
-  {
-    n: "3",
-    bg: "bg-rose/40",
-    title: "Your courage",
-    text: "You say the true thing even when it's hard. That's rarer than you'll ever let yourself believe.",
-  },
+const WISHES = [
+  "May your 15th be the best year in your life till now",
+  "Mastikhor jiwan mile aapko 😝🥰🤪🥰",
+  "Love that is consistent, warm, and completely certain of you.. (ye sentence kahi se le aya)",
+  "Aapki zindagi me sukh shaanti hoye 😇😇😇",
+  "Saare billu aapse attract hoyeeee 🐱🐱 .",
+  "A year so good it makes every year before feel like the warm-up",
 ];
 
-const WISHES = [
-  "May this year hand you every quiet joy you've been quietly hoping for, without you even having to ask.",
-  "May you keep being exactly as brave and a little bit stubborn as you are today. Don't you dare soften.",
-  "And may you always know — you are so, so loved. More than this little page could ever hold.",
+const MEMORIES = [
+  {
+    image: callOneAsset.url,
+    alt: "Saanvi smiling during a late-night video call",
+    caption: "Late night calls with my favourite person 🌙",
+    className: "memory-tilt-left",
+  },
+  {
+    image: danceOneAsset.url,
+    alt: "Saanvi performing classical dance on stage",
+    caption: "Stage queen / classical grace 🪷✨",
+    className: "memory-tilt-right memory-tall",
+  },
+  {
+    image: danceTwoAsset.url,
+    alt: "Saanvi performing a classical dance pose",
+    caption: "Unmatched vibes on stage 💃",
+    className: "memory-tilt-left memory-tall",
+  },
+  {
+    image: callTwoAsset.url,
+    alt: "Saanvi laughing during a video call",
+    caption: "The smile that makes everything better 🥺",
+    className: "memory-tilt-right",
+  },
 ];
 
 function Index() {
+  const [opened, setOpened] = useState(false);
+  const [flipped, setFlipped] = useState<number[]>([]);
   const [wished, setWished] = useState(false);
-  const [hearts, setHearts] = useState<number[]>([]);
+  const [catBursts, setCatBursts] = useState<number[]>([]);
+
+  const petBillu = useCallback(() => {
+    const burst = Array.from({ length: 8 }, (_, index) => index + Date.now());
+    setCatBursts((previous) => [...previous, ...burst]);
+    window.setTimeout(() => setCatBursts([]), 1500);
+  }, []);
 
   const makeWish = useCallback(() => {
     setWished(true);
-    const burst = Array.from({ length: 14 }, (_, i) => i);
-    setHearts((prev) => [...prev, ...burst]);
-    window.setTimeout(() => setHearts([]), 2600);
+    const burst = Array.from({ length: 16 }, (_, index) => index + Date.now());
+    setCatBursts((previous) => [...previous, ...burst]);
+    window.setTimeout(() => setCatBursts([]), 2600);
   }, []);
 
+  const toggleWish = (index: number) => {
+    setFlipped((previous) =>
+      previous.includes(index) ? previous.filter((item) => item !== index) : [...previous, index],
+    );
+  };
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-background font-body text-foreground">
-      {/* ambient gradient light */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-32 size-[420px] rounded-full bg-blush/50 blur-3xl" />
-        <div className="absolute top-1/3 -right-40 size-[460px] rounded-full bg-gold/40 blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 size-[380px] rounded-full bg-rose/30 blur-3xl" />
+    <main className="relative min-h-screen overflow-hidden bg-background font-body text-foreground">
+      <div className="page-light page-light-one" aria-hidden="true" />
+      <div className="page-light page-light-two" aria-hidden="true" />
+
+      <div className="cat-trail" aria-hidden="true">
+        <span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span>
       </div>
 
-      {/* floating balloons */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="balloon left-[12%] top-[70%] size-10 bg-rose/40" />
-        <div className="balloon left-[28%] top-[80%] size-7 bg-gold/50" style={{ animationDelay: "1.5s" }} />
-        <div className="balloon left-[68%] top-[75%] size-12 bg-blush/60" style={{ animationDelay: "0.8s" }} />
-        <div className="balloon left-[82%] top-[85%] size-8 bg-rose/40" style={{ animationDelay: "2.4s" }} />
-        <div className="balloon left-[48%] top-[90%] size-6 bg-gold/50" style={{ animationDelay: "3.2s" }} />
+      <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden" aria-hidden="true">
+        {catBursts.map((burst, index) => (
+          <span
+            key={burst}
+            className="cat-burst"
+            style={{ left: `${10 + ((index * 13) % 78)}%`, animationDelay: `${(index % 5) * 0.08}s` }}
+          >
+            {index % 2 === 0 ? "🐾" : "♡"}
+          </span>
+        ))}
       </div>
 
-      {/* HERO */}
-      <section className="relative">
-        <div className="mx-auto max-w-4xl px-6 py-24 sm:py-32">
-          <div className="rounded-[min(4vw,32px)] bg-white/40 p-8 ring-1 ring-black/5 backdrop-blur-xl sm:p-14">
-            <p className="fade-up text-sm font-medium uppercase tracking-[0.25em] text-rose-deep" style={{ animationDelay: "0.1s" }}>
-              A little celebration, just for you
-            </p>
-            <h1
-              className="fade-up mt-6 font-display text-6xl font-semibold leading-none text-foreground sm:text-7xl"
-              style={{ animationDelay: "0.25s", maxWidth: "20ch" }}
-            >
-              Happy Birthday, <span className="italic text-rose-deep">Saanvi</span>
+      {!opened && (
+        <div className="envelope-screen fixed inset-0 z-40 grid place-items-center px-6">
+          <div className="envelope-glow" aria-hidden="true" />
+          <div className="relative w-full max-w-[430px] text-center">
+            <p className="eyebrow fade-up">A little something for</p>
+            <h1 className="mt-4 font-display text-5xl font-semibold leading-none text-foreground sm:text-7xl">
+              Saanvi
             </h1>
-            <p className="fade-up mt-8 max-w-[46ch] text-base text-foreground/70 sm:text-lg" style={{ animationDelay: "0.4s" }}>
-              I made this little corner of the internet just to say the things I keep meaning to say. Scroll slowly —
-              there's a candle waiting for you at the end.
-            </p>
-            <div className="fade-up mt-10 flex flex-wrap items-center gap-4" style={{ animationDelay: "0.55s" }}>
-              <a
-                href="#wishes"
-                className="rounded-full bg-rose-deep px-7 py-3 text-sm font-semibold text-primary-foreground ring-1 ring-rose-deep transition-transform hover:-translate-y-0.5"
-              >
-                Make a wish with me
-              </a>
-              <a
-                href="#memories"
-                className="rounded-full px-6 py-3 text-sm font-medium text-foreground/70 transition-transform hover:-translate-y-0.5"
-              >
-                Read the memories
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* MEMORIES */}
-      <section id="memories" className="relative scroll-mt-8">
-        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
-          <div className="mb-12 max-w-[40ch]">
-            <p className="text-sm font-medium uppercase tracking-[0.25em] text-rose-deep">The things I love</p>
-            <h2 className="mt-4 font-display text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
-              A few of my favorite yous
-            </h2>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {LOVES.map((love, i) => (
-              <div
-                key={love.n}
-                className="group rounded-[min(3vw,24px)] bg-white/40 p-7 ring-1 ring-black/5 backdrop-blur-xl transition-transform hover:-translate-y-1.5"
-              >
-                <div
-                  className={`drift mb-5 inline-grid size-12 place-items-center rounded-full ${love.bg}`}
-                  style={{ animationDelay: `${i * 0.6}s` }}
-                >
-                  <span className="font-display text-lg text-rose-deep">{love.n}</span>
-                </div>
-                <h3 className="font-display text-xl font-medium text-foreground">{love.title}</h3>
-                <p className="mt-3 text-sm text-foreground/70">{love.text}</p>
+            <div className="envelope-wrap mt-12">
+              <div className="envelope-paper">
+                <span className="font-display text-2xl italic text-rose-deep">For Saanvi</span>
+                <span className="mt-2 text-xs uppercase tracking-[0.22em] text-foreground/50">open when ready</span>
               </div>
-            ))}
-          </div>
-
-          {/* memory photo strip */}
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            <figure className="overflow-hidden rounded-[min(3vw,24px)] ring-1 ring-black/5">
-              <img
-                src={memory1}
-                alt="Two friends laughing together in golden afternoon light"
-                width={1024}
-                height={1280}
-                loading="lazy"
-                className="aspect-[4/5] w-full object-cover"
-              />
-            </figure>
-            <figure className="overflow-hidden rounded-[min(3vw,24px)] ring-1 ring-black/5">
-              <img
-                src={memory2}
-                alt="A candlelit birthday table with a small cake and string lights"
-                width={1024}
-                height={1280}
-                loading="lazy"
-                className="aspect-[4/5] w-full object-cover"
-              />
-            </figure>
-            <figure className="overflow-hidden rounded-[min(3vw,24px)] ring-1 ring-black/5">
-              <img
-                src={memory3}
-                alt="A handwritten birthday card beside a single rose"
-                width={1024}
-                height={1280}
-                loading="lazy"
-                className="aspect-[4/5] w-full object-cover"
-              />
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      {/* WISHES */}
-      <section id="wishes" className="relative scroll-mt-8">
-        <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
-          <div className="rounded-[min(4vw,32px)] bg-white/40 p-8 ring-1 ring-black/5 backdrop-blur-xl sm:p-14">
-            <p className="text-sm font-medium uppercase tracking-[0.25em] text-rose-deep">My wishes for you</p>
-            <div className="mt-8 space-y-8">
-              {WISHES.map((wish, i) => (
-                <div key={i} className="flex gap-5">
-                  <span className="font-display text-3xl italic text-rose/70">0{i + 1}</span>
-                  <p className="max-w-[44ch] text-base text-foreground/80 sm:text-lg">{wish}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CLOSING / WISH MOMENT */}
-      <section className="relative">
-        <div className="mx-auto max-w-3xl px-6 py-20 pb-28 sm:py-28">
-          <div className="relative rounded-[min(4vw,32px)] bg-white/50 p-8 text-center ring-1 ring-black/5 backdrop-blur-xl sm:p-14">
-            <div
-              className={`mx-auto mb-8 inline-grid size-16 place-items-center rounded-full transition-all duration-700 ${
-                wished ? "bg-gold/25" : "bg-gold/50 flicker"
-              }`}
-            >
-              <span className={`font-display text-3xl ${wished ? "text-foreground/40" : "text-rose-deep"}`}>
-                {wished ? "✦" : "🕯"}
-              </span>
-            </div>
-            <h2 className="font-display text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
-              {wished ? "Wish made" : "Now it's your turn"}
-            </h2>
-            <p className="mx-auto mt-5 max-w-[40ch] text-base text-foreground/70 sm:text-lg">
-              {wished
-                ? "It's on its way. I'll be right here when you open your eyes."
-                : "Close your eyes, hold a wish, and tap the button. I'll be right here when you open them."}
-            </p>
-            {!wished && (
-              <button
+              <div className="envelope-flap" />
+              <Button
                 type="button"
-                onClick={makeWish}
-                className="mt-10 rounded-full bg-rose-deep px-9 py-4 text-base font-semibold text-primary-foreground ring-1 ring-rose-deep transition-transform hover:-translate-y-0.5"
+                onClick={() => setOpened(true)}
+                className="wax-seal"
+                aria-label="Open Saanvi's birthday letter"
               >
-                Make a wish
-              </button>
-            )}
-
-            {/* floating hearts on wish */}
-            <div className="pointer-events-none absolute inset-0 flex justify-center overflow-hidden rounded-[inherit]">
-              {hearts.map((h) => (
-                <span
-                  key={`${h}-${hearts.length}`}
-                  className="heart text-xl"
-                  style={{
-                    left: `${42 + (h % 5) * 4}%`,
-                    animationDelay: `${(h % 7) * 0.15}s`,
-                  }}
-                >
-                  {h % 3 === 0 ? "❤" : h % 3 === 1 ? "✦" : "✿"}
-                </span>
-              ))}
+                S
+              </Button>
             </div>
-
-            <p className="mt-10 font-display text-lg italic text-rose-deep">With all my heart, your friend</p>
+            <p className="mt-10 text-sm text-foreground/60">tap the seal to open your birthday letter</p>
+            <button type="button" onClick={petBillu} className="cat-peek cat-peek-envelope" aria-label="Pet the envelope cat">
+              🐈
+            </button>
           </div>
         </div>
-      </section>
-    </div>
+      )}
+
+      {opened && (
+        <>
+          <nav className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6 sm:px-10">
+            <span className="font-display text-xl italic text-rose-deep">for saanvi, always</span>
+            <a href="#memories" className="nav-link">keep scrolling ↓</a>
+          </nav>
+
+          <section className="relative z-10 mx-auto max-w-6xl px-6 pb-20 pt-12 sm:px-10 sm:pt-20">
+            <div className="hero-grid">
+              <div className="hero-copy">
+                <p className="eyebrow fade-up">Celebrating Saanvi's 15th Birthday · 2026 ✨</p>
+                <h1 className="fade-up mt-6 max-w-[11ch] font-display text-6xl font-semibold leading-[0.92] text-foreground sm:text-8xl" style={{ animationDelay: "0.15s" }}>
+                  Happy 15th Birthday, <span className="italic text-rose-deep">Saanvi</span>
+                </h1>
+                <p className="fade-up mt-8 max-w-[48ch] text-base leading-7 text-foreground/70 sm:text-lg" style={{ animationDelay: "0.3s" }}>
+                  Aaj ka din celebrate krne wala hi h bcoj agar tum nhi hoti to idk what my life would be mai kaise logo ke sath hota idk par tum khud hi celebrate nhi krti to I just created a card for you, sorry mai zyada kuchh ni kar paya like a handmade card bcz of parents
+                </p>
+                <div className="fade-up mt-9 flex flex-wrap items-center gap-4" style={{ animationDelay: "0.45s" }}>
+                  <a href="#wishes" className="primary-link">six little wishes <span>↓</span></a>
+                  <a href="#memories" className="quiet-link">see your photos</a>
+                </div>
+              </div>
+
+              <div className="hero-portrait-wrap fade-up" style={{ animationDelay: "0.25s" }}>
+                <div className="hero-portrait-frame">
+                  <img src={danceTwoAsset.url} alt="Saanvi in her beautiful classical dance costume" className="hero-portrait" />
+                  <span className="hero-sticker hero-sticker-one">15</span>
+                  <span className="hero-sticker hero-sticker-two">♡</span>
+                </div>
+                <p className="mt-4 text-center font-display text-lg italic text-rose-deep">the birthday girl herself ✦</p>
+                <button type="button" onClick={petBillu} className="cat-peek cat-peek-hero" aria-label="Pet the birthday cat">😺</button>
+              </div>
+            </div>
+
+            <div className="music-pill mt-16">
+              <div className="music-disc"><span>♫</span></div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-rose-deep">our birthday soundtrack</p>
+                <p className="mt-1 truncate font-display text-lg text-foreground">Nashe Si Chadh Gayi</p>
+                <p className="text-xs text-foreground/55">Befikre · Arijit Singh</p>
+              </div>
+              <Button asChild variant="outline" size="sm" className="shrink-0 rounded-full border-rose-deep/20 bg-background/40">
+                <a href="https://open.spotify.com/track/0biCSADTAbIvLTLtJz4pXO?si=11fc780e51134cb7" target="_blank" rel="noreferrer">listen ↗</a>
+              </Button>
+            </div>
+          </section>
+
+          <section className="relative z-10 mx-auto max-w-6xl px-6 py-20 sm:px-10 sm:py-28">
+            <div className="section-heading">
+              <p className="eyebrow">just so you know</p>
+              <h2 className="mt-4 max-w-[11ch] font-display text-5xl font-semibold leading-none sm:text-7xl">things I want you to hear</h2>
+            </div>
+            <div className="confession-grid mt-12">
+              <article className="confession-card confession-card-pink">
+                <span className="confession-mark">01</span>
+                <p className="mt-14 font-display text-3xl leading-tight text-foreground sm:text-4xl">I'm so happy ki you are my friend (🥺 🥺 yahi kehna pad rha h)</p>
+                <span className="mt-8 block text-2xl text-rose-deep">♡</span>
+              </article>
+              <article className="confession-card confession-card-gold">
+                <span className="confession-mark">02</span>
+                <p className="mt-14 font-display text-3xl leading-tight text-foreground sm:text-4xl">On your birthday, I just want to say ki I love you so fking muchhhhh and idk how to express it through text or even IRL to just maine yahi pe likh diya cuz i have freedom here koi kya keh lega 😼</p>
+                <span className="mt-8 block text-2xl text-rose-deep">✦</span>
+              </article>
+            </div>
+          </section>
+
+          <section id="wishes" className="relative z-10 scroll-mt-8 px-6 py-20 sm:px-10 sm:py-28">
+            <div className="mx-auto max-w-6xl">
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <div>
+                  <p className="eyebrow">six wishes for you</p>
+                  <h2 className="mt-4 max-w-[12ch] font-display text-5xl font-semibold leading-none sm:text-7xl">pick a card, any card</h2>
+                </div>
+                <p className="max-w-[25ch] text-sm leading-6 text-foreground/60">Tap each little card. There is a wish hiding on the other side.</p>
+              </div>
+              <div className="wish-grid mt-12">
+                {WISHES.map((wish, index) => {
+                  const isFlipped = flipped.includes(index);
+                  return (
+                    <button
+                      type="button"
+                      key={wish}
+                      onClick={() => toggleWish(index)}
+                      className={`wish-card ${isFlipped ? "is-flipped" : ""}`}
+                      aria-label={`${isFlipped ? "Hide" : "Reveal"} wish ${index + 1}`}
+                    >
+                      <span className="wish-card-inner">
+                        <span className="wish-face wish-front">
+                          <span className="wish-number">0{index + 1}</span>
+                          <span className="wish-cat">{index === 4 ? "🐈" : index % 2 === 0 ? "✦" : "♡"}</span>
+                          <span className="wish-tap">tap to reveal</span>
+                        </span>
+                        <span className="wish-face wish-back">
+                          <span className="wish-number">0{index + 1}</span>
+                          <span className="wish-text">{wish}</span>
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          <section id="memories" className="relative z-10 scroll-mt-8 px-6 py-20 sm:px-10 sm:py-28">
+            <div className="mx-auto max-w-6xl">
+              <div className="section-heading">
+                <p className="eyebrow">a tiny gallery of you</p>
+                <h2 className="mt-4 max-w-[10ch] font-display text-5xl font-semibold leading-none sm:text-7xl">the moments I keep</h2>
+              </div>
+              <div className="memory-grid mt-14">
+                {MEMORIES.map((memory) => (
+                  <figure key={memory.caption} className={`polaroid ${memory.className}`}>
+                    <div className="polaroid-image-wrap">
+                      <img src={memory.image} alt={memory.alt} loading="lazy" className="polaroid-image" />
+                    </div>
+                    <figcaption>{memory.caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="relative z-10 px-6 py-20 sm:px-10 sm:py-28">
+            <div className="closing-note mx-auto max-w-4xl">
+              <p className="eyebrow">one last thing</p>
+              <p className="mt-7 max-w-[27ch] font-display text-4xl leading-tight text-foreground sm:text-6xl">Bas dekho tum ye kabhi mat sochna ki there is no one for you...</p>
+              <p className="mt-8 max-w-[60ch] text-base leading-7 text-foreground/75 sm:text-lg">no matter what I'll be here, NO MATTER WHAT.. I spend so much time on calls with you to you should understand ki even though tumhari family, friends, koi bhi care/support kre na kre I will do it.. Happy Birthday!</p>
+              <p className="mt-8 font-display text-xl italic text-rose-deep">always, your favourite person to call</p>
+            </div>
+          </section>
+
+          <section className="relative z-10 px-6 pb-32 pt-20 sm:px-10">
+            <div className="wish-ending mx-auto max-w-3xl text-center">
+              <div className={`candle ${wished ? "candle-out" : ""}`} aria-hidden="true"><span className="flame">✦</span><span className="candle-stick" /></div>
+              <p className="eyebrow">the final little moment</p>
+              <h2 className="mt-5 font-display text-5xl font-semibold leading-none sm:text-7xl">{wished ? "Wish made ✨" : "make a wish, birthday girl"}</h2>
+              <p className="mx-auto mt-6 max-w-[40ch] text-base leading-7 text-foreground/65">{wished ? "Okay, it's officially on its way. And yes, the billus are coming too." : "Close your eyes, think of something beautiful, and tap the candle."}</p>
+              {!wished && <Button type="button" onClick={makeWish} className="mt-9 rounded-full px-8 py-6 text-base">make a wish ✦</Button>}
+            </div>
+          </section>
+        </>
+      )}
+    </main>
   );
 }
