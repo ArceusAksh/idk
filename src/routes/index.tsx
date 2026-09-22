@@ -1,11 +1,13 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { Pause, Play, RotateCcw, Volume1, Volume2, VolumeX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import callOneAsset from "@/assets/saanvi-call-1.png.asset.json";
-import danceOneAsset from "@/assets/saanvi-dance-1.png.asset.json";
-import danceTwoAsset from "@/assets/saanvi-dance-2.png.asset.json";
-import callTwoAsset from "@/assets/saanvi-call-2.png.asset.json";
+import imageOne from "@/assets/1.png";
+import imageTwo from "@/assets/2.png";
+import imageThree from "@/assets/3.png";
+import imageFour from "@/assets/4.png";
+import soundtrack from "@/assets/Nashe Si Chadh Gayi Befikre 320 Kbps.mp3";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,7 +33,7 @@ export const Route = createFileRoute("/")({
 const WISHES = [
   "May your 15th be the best year in your life till now",
   "Mastikhor jiwan mile aapko 😝🥰🤪🥰",
-  "Love that is consistent, warm, and completely certain of you.. (ye sentence kahi se le aya)",
+  "Love that is consistent, warm, and completely certain of you.. (ye sentence kahi se le aya wrna kaash mai hi hou.. 😄😄)",
   "Aapki zindagi me sukh shaanti hoye 😇😇😇",
   "Saare billu aapse attract hoyeeee 🐱🐱 .",
   "A year so good it makes every year before feel like the warm-up",
@@ -39,49 +41,172 @@ const WISHES = [
 
 const MEMORIES = [
   {
-    image: callOneAsset.url,
+    image: imageOne,
     alt: "Saanvi smiling during a late-night video call",
     caption: "Late night calls with my favourite person 🌙",
     className: "memory-tilt-left",
   },
   {
-    image: danceOneAsset.url,
+    image: imageTwo,
     alt: "Saanvi performing classical dance on stage",
     caption: "Stage queen / classical grace 🪷✨",
     className: "memory-tilt-right memory-tall",
   },
   {
-    image: danceTwoAsset.url,
+    image: imageThree,
     alt: "Saanvi performing a classical dance pose",
     caption: "Unmatched vibes on stage 💃",
     className: "memory-tilt-left memory-tall",
   },
   {
-    image: callTwoAsset.url,
+    image: imageFour,
     alt: "Saanvi laughing during a video call",
     caption: "The smile that makes everything better 🥺",
     className: "memory-tilt-right",
   },
 ];
 
+const BURST_EMOJI = ["🐾", "♡", "✦", "🐱", "💕", "✨"];
+
+const CONFETTI_EMOJI = ["🎊", "🎉", "🎈", "🥳", "✨", "🎉", "♡", "✦"];
+
+type CatBurst = {
+  id: number;
+  emoji: string;
+  left: number;
+  size: number;
+  tx: number;
+  ty: number;
+  rot: number;
+  dur: number;
+  delay: number;
+};
+
 function Index() {
   const [opened, setOpened] = useState(false);
   const [flipped, setFlipped] = useState<number[]>([]);
   const [wished, setWished] = useState(false);
-  const [catBursts, setCatBursts] = useState<number[]>([]);
+  const [catBursts, setCatBursts] = useState<CatBurst[]>([]);
+  const [confetti, setConfetti] = useState<CatBurst[]>([]);
+  const [lastPet, setLastPet] = useState(0);
+  const burstId = useRef(0);
+  const burstTimer = useRef<number | undefined>(undefined);
+  const confettiTimer = useRef<number | undefined>(undefined);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const formatTime = (seconds: number) => {
+    if (!Number.isFinite(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      void audio.play();
+      setPlaying(true);
+    } else {
+      audio.pause();
+      setPlaying(false);
+    }
+  };
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.muted = !audio.muted;
+    setMuted(audio.muted);
+  };
+
+  const setVol = (value: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const clamped = Math.max(0, Math.min(1, value));
+    audio.volume = clamped;
+    if (clamped > 0) audio.muted = false;
+    setVolume(clamped);
+    setMuted(audio.muted);
+  };
+
+  const replaySong = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = 0;
+    if (audio.paused) void audio.play();
+    setPlaying(true);
+  };
+
+  const seekSong = (seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = seconds;
+    setCurrentTime(seconds);
+  };
+
+  const spawnBursts = useCallback((count: number) => {
+    return Array.from({ length: count }, () => {
+      burstId.current += 1;
+      const i = burstId.current;
+      return {
+        id: i,
+        emoji: BURST_EMOJI[i % BURST_EMOJI.length] ?? "♡",
+        left: 8 + ((i * 29) % 84),
+        size: 1.0 + ((i % 10) / 10) * 0.9,
+        tx: -64 + ((i * 23) % 128),
+        ty: -80 - ((i * 19) % 90),
+        rot: -35 + ((i * 31) % 70),
+        dur: 1.2 + ((i % 9) / 10),
+        delay: (i % 6) * 0.07,
+      };
+    });
+  }, []);
+
+  const spawnConfetti = useCallback((count: number) => {
+    return Array.from({ length: count }, () => {
+      burstId.current += 1;
+      const i = burstId.current;
+      return {
+        id: i,
+        emoji: CONFETTI_EMOJI[i % CONFETTI_EMOJI.length] ?? "🎉",
+        left: 3 + ((i * 17) % 94),
+        size: 1.1 + ((i % 9) / 10) * 0.9,
+        tx: -70 + ((i * 21) % 140),
+        ty: 105,
+        rot: ((i * 47) % 360) - 180,
+        dur: 2.8 + ((i % 8) / 10),
+        delay: (i % 10) * 0.16,
+      };
+    });
+  }, []);
+
+  const openLetter = useCallback(() => {
+    setOpened(true);
+    setConfetti((previous) => [...previous, ...spawnConfetti(28)]);
+    window.clearTimeout(confettiTimer.current);
+    confettiTimer.current = window.setTimeout(() => setConfetti([]), 4500);
+  }, [spawnConfetti]);
 
   const petBillu = useCallback(() => {
-    const burst = Array.from({ length: 8 }, (_, index) => index + Date.now());
-    setCatBursts((previous) => [...previous, ...burst]);
-    window.setTimeout(() => setCatBursts([]), 1500);
-  }, []);
+    setLastPet(Date.now());
+    setCatBursts((previous) => [...previous, ...spawnBursts(12)]);
+    window.clearTimeout(burstTimer.current);
+    burstTimer.current = window.setTimeout(() => setCatBursts([]), 2800);
+  }, [spawnBursts]);
 
   const makeWish = useCallback(() => {
     setWished(true);
-    const burst = Array.from({ length: 16 }, (_, index) => index + Date.now());
-    setCatBursts((previous) => [...previous, ...burst]);
-    window.setTimeout(() => setCatBursts([]), 2600);
-  }, []);
+    setLastPet(Date.now());
+    setCatBursts((previous) => [...previous, ...spawnBursts(18)]);
+    window.clearTimeout(burstTimer.current);
+    burstTimer.current = window.setTimeout(() => setCatBursts([]), 3000);
+  }, [spawnBursts]);
 
   const toggleWish = (index: number) => {
     setFlipped((previous) =>
@@ -99,13 +224,44 @@ function Index() {
       </div>
 
       <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden" aria-hidden="true">
-        {catBursts.map((burst, index) => (
+        {catBursts.map((burst) => (
           <span
-            key={burst}
+            key={burst.id}
             className="cat-burst"
-            style={{ left: `${10 + ((index * 13) % 78)}%`, animationDelay: `${(index % 5) * 0.08}s` }}
+            style={
+              {
+                "--bx": `${burst.left}%`,
+                "--bsize": `${burst.size}rem`,
+                "--tx": `${burst.tx}px`,
+                "--ty": `${burst.ty}px`,
+                "--rot": `${burst.rot}deg`,
+                "--dur": `${burst.dur}s`,
+                "--delay": `${burst.delay}s`,
+              } as CSSProperties
+            }
           >
-            {index % 2 === 0 ? "🐾" : "♡"}
+            {burst.emoji}
+          </span>
+        ))}
+      </div>
+
+      <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true">
+        {confetti.map((bit) => (
+          <span
+            key={bit.id}
+            className="confetti-bit"
+            style={
+              {
+                "--bx": `${bit.left}%`,
+                "--bsize": `${bit.size}rem`,
+                "--tx": `${bit.tx}px`,
+                "--rot": `${bit.rot}deg`,
+                "--dur": `${bit.dur}s`,
+                "--delay": `${bit.delay}s`,
+              } as CSSProperties
+            }
+          >
+            {bit.emoji}
           </span>
         ))}
       </div>
@@ -126,7 +282,7 @@ function Index() {
               <div className="envelope-flap" />
               <Button
                 type="button"
-                onClick={() => setOpened(true)}
+                onClick={openLetter}
                 className="wax-seal"
                 aria-label="Open Saanvi's birthday letter"
               >
@@ -135,7 +291,8 @@ function Index() {
             </div>
             <p className="mt-10 text-sm text-foreground/60">tap the seal to open your birthday letter</p>
             <button type="button" onClick={petBillu} className="cat-peek cat-peek-envelope" aria-label="Pet the envelope cat">
-              🐈
+              <span key={lastPet} className="cat-bop">🐈</span>
+              {lastPet > 0 && <span key={`poof-${lastPet}`} className="cat-poof" aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -166,26 +323,92 @@ function Index() {
 
               <div className="hero-portrait-wrap fade-up" style={{ animationDelay: "0.25s" }}>
                 <div className="hero-portrait-frame">
-                  <img src={danceTwoAsset.url} alt="Saanvi in her beautiful classical dance costume" className="hero-portrait" />
+                  <img src={imageTwo} alt="Saanvi in her beautiful classical dance costume" className="hero-portrait" />
                   <span className="hero-sticker hero-sticker-one">15</span>
                   <span className="hero-sticker hero-sticker-two">♡</span>
                 </div>
                 <p className="mt-4 text-center font-display text-lg italic text-rose-deep">the birthday girl herself ✦</p>
-                <button type="button" onClick={petBillu} className="cat-peek cat-peek-hero" aria-label="Pet the birthday cat">😺</button>
+                <button type="button" onClick={petBillu} className="cat-peek cat-peek-hero" aria-label="Pet the birthday cat">
+                  <span key={lastPet} className="cat-bop">😺</span>
+                  {lastPet > 0 && <span key={`poof-${lastPet}`} className="cat-poof" aria-hidden="true" />}
+                </button>
               </div>
             </div>
 
-            <div className="music-pill mt-16">
+            <div className={`music-pill mt-16 ${playing ? "is-playing" : ""}`}>
               <div className="music-disc"><span>♫</span></div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-rose-deep">our birthday soundtrack</p>
-                <p className="mt-1 truncate font-display text-lg text-foreground">Nashe Si Chadh Gayi</p>
-                <p className="text-xs text-foreground/55">Befikre · Arijit Singh</p>
+              <div className="music-player-body">
+                <div className="music-player-top">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-rose-deep">our birthday soundtrack</p>
+                    <p className="mt-1 truncate font-display text-lg text-foreground">Nashe Si Chadh Gayi</p>
+                    <p className="text-xs text-foreground/55">Befikre · Arijit Singh</p>
+                  </div>
+                  <div className="music-player-actions">
+                    <div className="music-vol">
+                      <button type="button" onClick={toggleMute} className="music-btn" aria-label={muted ? "Unmute" : "Mute"}>
+                        {muted || volume === 0 ? (
+                          <VolumeX size={18} />
+                        ) : volume < 0.5 ? (
+                          <Volume1 size={18} />
+                        ) : (
+                          <Volume2 size={18} />
+                        )}
+                      </button>
+                      <div className="music-vol-panel">
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={volume}
+                          onChange={(event) => setVol(Number(event.target.value))}
+                          className="music-progress"
+                          style={{ "--fill": `${volume * 100}%` } as CSSProperties}
+                          aria-label="Volume"
+                        />
+                      </div>
+                    </div>
+                    <button type="button" onClick={replaySong} className="music-btn" aria-label="Replay from the start">
+                      <RotateCcw size={18} />
+                    </button>
+                    <button type="button" onClick={togglePlay} className="music-btn-play" aria-label={playing ? "Pause" : "Play"}>
+                      {playing ? <Pause size={20} strokeWidth={2.4} /> : <Play size={20} strokeWidth={2.4} className="translate-x-[1px]" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="music-player-bar">
+                  <span className="music-times">{formatTime(currentTime)}</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 0}
+                    step={0.1}
+                    value={currentTime}
+                    onChange={(event) => seekSong(Number(event.target.value))}
+                    className="music-progress"
+                    style={{ "--fill": `${duration ? (currentTime / duration) * 100 : 0}%` } as CSSProperties}
+                    aria-label="Seek through the song"
+                  />
+                  <span className="music-times">{formatTime(duration)}</span>
+                </div>
               </div>
-              <Button asChild variant="outline" size="sm" className="shrink-0 rounded-full border-rose-deep/20 bg-background/40">
-                <a href="https://open.spotify.com/track/0biCSADTAbIvLTLtJz4pXO?si=11fc780e51134cb7" target="_blank" rel="noreferrer">listen ↗</a>
-              </Button>
             </div>
+            <audio
+              ref={audioRef}
+              src={soundtrack}
+              preload="metadata"
+              className="hidden"
+              onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+              onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
+              onVolumeChange={(event) => {
+                setVolume(event.currentTarget.volume);
+                setMuted(event.currentTarget.muted);
+              }}
+              onPlay={() => setPlaying(true)}
+              onPause={() => setPlaying(false)}
+              onEnded={() => setPlaying(false)}
+            />
           </section>
 
           <section className="relative z-10 mx-auto max-w-6xl px-6 py-20 sm:px-10 sm:py-28">
